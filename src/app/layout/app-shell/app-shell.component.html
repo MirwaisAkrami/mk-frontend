@@ -1,0 +1,15 @@
+<div class="min-h-screen bg-gov-bg">
+  <app-header (toggleSidebar)="toggleSidebar()" />
+
+  <div class="flex w-full">
+    <app-sidebar [collapsed]="sidebarCollapsed()" class="flex-shrink-0" />
+
+    <main
+      class="flex-1 p-6 overflow-x-hidden min-w-0">
+      <div class="max-w-content mx-auto">
+        <app-breadcrumbs />
+        <router-outlet />
+      </div>
+    </main>
+  </div>
+</div>

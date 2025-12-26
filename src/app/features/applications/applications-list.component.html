@@ -1,0 +1,65 @@
+<div class="space-y-6">
+  <div class="flex items-center justify-between">
+    <h1 class="text-3xl font-bold text-gov-navy">{{ 'applications.title' | translate }}</h1>
+    <a routerLink="/birth/new" class="btn btn-primary">
+      {{ 'nav.newApplication' | translate }}
+    </a>
+  </div>
+
+  <!-- Filters -->
+  <div class="card">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div>
+        <label class="form-label">{{ 'applications.status' | translate }}</label>
+        <ng-select
+          [items]="statusOptions"
+          bindLabel="label"
+          bindValue="value"
+          [(ngModel)]="filters.status"
+          (change)="applyFilters()"
+          placeholder="Select status"
+          class="ng-select-custom">
+        </ng-select>
+      </div>
+
+      <div>
+        <label class="form-label">{{ 'applications.type' | translate }}</label>
+        <ng-select
+          [items]="typeOptions"
+          bindLabel="label"
+          bindValue="value"
+          [(ngModel)]="filters.type"
+          (change)="applyFilters()"
+          placeholder="Select type"
+          class="ng-select-custom">
+        </ng-select>
+      </div>
+
+      <div>
+        <label class="form-label">{{ 'common.search' | translate }}</label>
+        <input
+          type="text"
+          [(ngModel)]="filters.search"
+          (input)="applyFilters()"
+          placeholder="Search by ID or name..."
+          class="form-input"
+        />
+      </div>
+
+      <div class="flex items-end">
+        <button (click)="resetFilters()" class="btn btn-secondary w-full">
+          {{ 'common.reset' | translate }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Applications Table -->
+  <div class="card">
+    <app-data-table
+      [columns]="tableColumns"
+      [data]="filteredApplications()"
+      [actions]="tableActions"
+    />
+  </div>
+</div>

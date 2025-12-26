@@ -1,0 +1,227 @@
+<div class="space-y-4">
+  <!-- Table Controls -->
+  <div class="flex items-center justify-between">
+    <div class="flex items-center gap-2">
+      <label class="flex items-center gap-2 text-sm text-gov-gray">
+        <input
+          type="checkbox"
+          [(ngModel)]="denseMode"
+          (change)="onDenseModeChange()"
+          class="rounded border-gray-300 text-gov-blue focus:ring-gov-blue" />
+        <span>{{ 'common.denseMode' | translate }}</span>
+      </label>
+    </div>
+
+    <div class="flex items-center gap-4">
+      @if (enablePagination) {
+        <div class="text-sm text-gov-gray">
+          {{ 'common.showing' | translate }} {{ startIndex() + 1 }}-{{ endIndex() }} {{ 'common.of' | translate }} {{ totalItems() }} {{ 'common.items' | translate }}
+        </div>
+      } @else {
+        <div class="text-sm text-gov-gray">
+          {{ 'common.showing' | translate }} {{ data.length }} {{ 'common.items' | translate }}
+        </div>
+      }
+      
+      @if (showRefresh) {
+        <button
+          (click)="onRefresh()"
+          [disabled]="isRefreshing()"
+          class="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gov-blue hover:text-gov-navy hover:bg-blue-50 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          [title]="'common.refresh' | translate">
+          <svg 
+            class="w-4 h-4" 
+            [class.animate-spin]="isRefreshing()"
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24">
+            <path 
+              stroke-linecap="round" 
+              stroke-linejoin="round" 
+              stroke-width="2" 
+              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          <span>{{ 'common.refresh' | translate }}</span>
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="table-container">
+    <table
+      class="data-table"
+      [class.table-dense]="denseMode()"
+      [attr.aria-label]="'Data table'">
+      <thead>
+        <tr>
+          @for (col of columns; track col.key) {
+            <th [style.width]="col.width" (click)="col.sortable ? sort(col.key) : null">
+              <div class="flex items-center gap-2">
+                <span>{{ col.label | translate }}</span>
+                @if (col.sortable) {
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                  </svg>
+                }
+              </div>
+            </th>
+          }
+          @if (actions && actions.length > 0) {
+            <th class="w-32">{{ 'common.actions' | translate }}</th>
+          }
+        </tr>
+      </thead>
+      <tbody>
+        @if (paginatedData().length === 0) {
+          <tr>
+            <td [attr.colspan]="columns.length + (actions?.length ? 1 : 0)" class="text-center py-8">
+              <div class="text-gov-gray">
+                <svg
+                  class="w-12 h-12 mx-auto mb-2 opacity-50"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                </svg>
+                <p>{{ 'common.noData' | translate }}</p>
+              </div>
+            </td>
+          </tr>
+        }
+        @for (row of paginatedData(); track row.id || $index) {
+          <tr>
+            @for (col of columns; track col.key) {
+              <td>
+                @if (col.type === 'image') {
+                  @if (row[col.key]) {
+                    <img [src]="row[col.key]" [alt]="col.label" class="w-8 h-8 rounded-full object-cover" />
+                  } @else {
+                    <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                      <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                    </div>
+                  }
+                } @else if (col.key === 'isActive' || col.type === 'boolean') {
+                  <span [class]="row[col.key] ? 'px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800' : 'px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800'">
+                    {{ row[col.key] ? 'Active' : 'Inactive' }}
+                  </span>
+                } @else {
+                  {{ row[col.key] }}
+                }
+              </td>
+            }
+            @if (actions && actions.length > 0) {
+              <td>
+                <div class="flex items-center gap-2">
+                  @for (action of actions; track action.label) {
+                    @if (!action.visible || action.visible(row)) {
+                      <button
+                        (click)="action.handler(row)"
+                        class="px-3 py-1.5 text-sm font-medium text-white bg-gray-800 hover:bg-gov-blue rounded transition-colors duration-200"
+                        [title]="action.label | translate">
+                        {{ action.label | translate }}
+                      </button>
+                    }
+                  }
+                </div>
+              </td>
+            }
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination Controls -->
+  @if (enablePagination && totalPages() > 1) {
+    <div class="flex items-center justify-between border-t border-gray-200 pt-4">
+      <!-- Page Size Selector -->
+      <div class="flex items-center gap-2">
+        <label class="text-sm text-gov-gray">{{ 'common.itemsPerPage' | translate }}:</label>
+        <select
+          [value]="currentPageSize()"
+          (change)="onPageSizeChange(+$any($event.target).value)"
+          class="rounded border-gray-300 text-sm focus:ring-gov-blue focus:border-gov-blue">
+          @for (size of pageSizeOptions; track size) {
+            <option [value]="size">{{ size }}</option>
+          }
+        </select>
+      </div>
+
+      <!-- Page Navigation -->
+      <div class="flex items-center gap-2">
+        <!-- First Page -->
+        <button
+          (click)="goToFirstPage()"
+          [disabled]="currentPage() === 1"
+          class="px-2 py-1 text-sm font-medium text-gov-gray hover:text-gov-blue hover:bg-blue-50 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-gov-gray"
+          [title]="'common.firstPage' | translate">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+          </svg>
+        </button>
+
+        <!-- Previous Page -->
+        <button
+          (click)="goToPreviousPage()"
+          [disabled]="currentPage() === 1"
+          class="px-2 py-1 text-sm font-medium text-gov-gray hover:text-gov-blue hover:bg-blue-50 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-gov-gray"
+          [title]="'common.previousPage' | translate">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+
+        <!-- Page Numbers -->
+        <div class="flex items-center gap-1">
+          @for (page of visiblePages(); track page) {
+            @if (isNumber(page)) {
+              <button
+                (click)="goToPage(page)"
+                [class]="page === currentPage() 
+                  ? 'px-3 py-1 text-sm font-medium text-white bg-gov-blue rounded' 
+                  : 'px-3 py-1 text-sm font-medium text-gov-gray hover:text-gov-blue hover:bg-blue-50 rounded transition-colors'"
+                [attr.aria-current]="page === currentPage() ? 'page' : null">
+                {{ page }}
+              </button>
+            } @else {
+              <span class="px-2 text-gov-gray">{{ page }}</span>
+            }
+          }
+        </div>
+
+        <!-- Next Page -->
+        <button
+          (click)="goToNextPage()"
+          [disabled]="currentPage() === totalPages()"
+          class="px-2 py-1 text-sm font-medium text-gov-gray hover:text-gov-blue hover:bg-blue-50 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-gov-gray"
+          [title]="'common.nextPage' | translate">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+
+        <!-- Last Page -->
+        <button
+          (click)="goToLastPage()"
+          [disabled]="currentPage() === totalPages()"
+          class="px-2 py-1 text-sm font-medium text-gov-gray hover:text-gov-blue hover:bg-blue-50 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-gov-gray"
+          [title]="'common.lastPage' | translate">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  }
+</div>

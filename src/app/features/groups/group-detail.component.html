@@ -1,0 +1,128 @@
+<div class="space-y-6">
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-3xl font-bold text-gov-navy">{{ title() }}</h1>
+      <div class="text-sm text-gov-gray">Group details & moderation</div>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <button class="btn btn-secondary" (click)="load()" [disabled]="loading()">
+        {{ 'common.refresh' | translate }}
+      </button>
+      <button class="btn btn-secondary" (click)="sendMessage()">Send Message</button>
+      <button class="btn btn-secondary" (click)="setAffiliation()">Set Affiliation</button>
+      <button class="btn btn-secondary" (click)="destroy()">Destroy</button>
+    </div>
+  </div>
+
+  @if (error()) {
+    <div class="card border border-red-200 bg-red-50 text-red-700">
+      {{ error() }}
+    </div>
+  }
+
+  <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+    <div class="card">
+      <div class="text-sm text-gov-gray">Room Name</div>
+      <div class="text-xl font-bold text-gov-navy">{{ room()?.name || '-' }}</div>
+    </div>
+    <div class="card">
+      <div class="text-sm text-gov-gray">Participants</div>
+      <div class="text-xl font-bold text-gov-navy">{{ room()?.numParticipants || occupants()?.length || 0 }}</div>
+    </div>
+    <div class="card">
+      <div class="text-sm text-gov-gray">Subscribers</div>
+      <div class="text-xl font-bold text-gov-navy">{{ subscribers()?.length || 0 }}</div>
+    </div>
+    <div class="card">
+      <div class="text-sm text-gov-gray">Public</div>
+      <div class="text-xl font-bold text-gov-navy">{{ room()?.isPublic ? 'Yes' : 'No' }}</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2 class="text-lg font-semibold text-gov-navy mb-3">Room Configuration</h2>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+      @if (room()?.title) {
+        <div><span class="text-gov-gray">Title:</span> {{ room()?.title }}</div>
+      }
+      @if (room()?.description) {
+        <div class="col-span-2"><span class="text-gov-gray">Description:</span> {{ room()?.description }}</div>
+      }
+      @if (room()?.subject) {
+        <div class="col-span-2"><span class="text-gov-gray">Subject:</span> {{ room()?.subject }}</div>
+      }
+      <div><span class="text-gov-gray">Persistent:</span> {{ room()?.persistent ? 'Yes' : 'No' }}</div>
+      <div><span class="text-gov-gray">Moderated:</span> {{ room()?.moderated ? 'Yes' : 'No' }}</div>
+      <div><span class="text-gov-gray">Members Only:</span> {{ room()?.membersOnly ? 'Yes' : 'No' }}</div>
+      <div><span class="text-gov-gray">Logging:</span> {{ room()?.logging ? 'Yes' : 'No' }}</div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="card">
+      <h2 class="text-lg font-semibold text-gov-navy mb-3">Occupants ({{ occupants()?.length || 0 }})</h2>
+      <app-data-table
+        [columns]="occupantsColumns"
+        [data]="occupants()"
+        [actions]="occupantsActions"
+        [showRefresh]="false"
+        [enablePagination]="true"
+      />
+    </div>
+
+    <div class="card">
+      <h2 class="text-lg font-semibold text-gov-navy mb-3">Affiliations ({{ affiliations()?.length || 0 }})</h2>
+      <app-data-table
+        [columns]="affiliationsColumns"
+        [data]="affiliations()"
+        [showRefresh]="false"
+        [enablePagination]="true"
+      />
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="card">
+      <h2 class="text-lg font-semibold text-gov-navy mb-3">Subscribers ({{ subscribers()?.length || 0 }})</h2>
+      @if (subscribers()?.length) {
+        <ul class="list-disc list-inside text-sm space-y-1 max-h-48 overflow-auto">
+          @for (sub of subscribers(); track sub) {
+            <li>{{ sub }}</li>
+          }
+        </ul>
+      } @else {
+        <p class="text-sm text-gov-gray">No subscribers</p>
+      }
+    </div>
+
+    <div class="card">
+      <h2 class="text-lg font-semibold text-gov-navy mb-3">Recent History ({{ history()?.length || 0 }})</h2>
+      @if (history()?.length) {
+        <app-data-table
+          [columns]="historyColumns"
+          [data]="history()"
+          [showRefresh]="false"
+          [enablePagination]="true"
+        />
+      } @else {
+        <p class="text-sm text-gov-gray">No history available</p>
+      }
+    </div>
+  </div>
+
+  @if (options()?.length) {
+    <div class="card">
+      <h2 class="text-lg font-semibold text-gov-navy mb-3">Room Options</h2>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
+        @for (opt of options(); track opt.name) {
+          <div><span class="text-gov-gray">{{ opt.name }}:</span> {{ opt.value }}</div>
+        }
+      </div>
+    </div>
+  }
+
+  <div>
+    <a routerLink="/groups" class="text-gov-blue hover:underline">Back to Groups</a>
+  </div>
+</div>

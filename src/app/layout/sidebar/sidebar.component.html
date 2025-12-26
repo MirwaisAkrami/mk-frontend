@@ -1,0 +1,103 @@
+<aside
+  [class.w-72]="!collapsed"
+  [class.w-16]="collapsed"
+  class="bg-gradient-to-b from-gov-navy to-gov-navy-dark border-r border-gov-navy-light h-[calc(100vh-4rem)] sticky top-16 overflow-y-auto no-print transition-all duration-300 shadow-lg">
+  <nav class="py-4 px-2">
+    @for (item of visibleMenuItems(); track item.label) {
+      @if (item.children) {
+        <!-- Menu group with collapsible submenu -->
+        <div class="mb-1">
+          @if (!collapsed) {
+            <button
+              (click)="toggleGroup(item)"
+              class="w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg hover:bg-white/10 text-white/90 hover:text-white transition-all duration-200 group">
+              <div class="flex items-center gap-3">
+                <lucide-icon 
+                  [img]="item.icon" 
+                  class="w-5 h-5 flex-shrink-0 text-white/80 group-hover:text-white transition-colors"
+                  [strokeWidth]="2">
+                </lucide-icon>
+                <span class="text-sm font-medium">{{ item.label | translate }}</span>
+              </div>
+              <lucide-icon 
+                [img]="expandedGroups()[item.label] ? ChevronDown : ChevronRight" 
+                class="w-4 h-4 text-white/60 transition-transform"
+                [strokeWidth]="2">
+              </lucide-icon>
+            </button>
+            
+            @if (expandedGroups()[item.label]) {
+              <div class="mt-1 ml-2 space-y-0.5">
+                @for (child of item.children; track child.label) {
+                  @if (canAccess(child)) {
+                    <a
+                      [routerLink]="child.route"
+                      routerLinkActive="bg-white/20 text-white shadow-sm"
+                      [routerLinkActiveOptions]="{ exact: false }"
+                      class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-white/80 hover:text-white transition-all duration-200 group">
+                      <lucide-icon 
+                        [img]="child.icon" 
+                        class="w-4 h-4 flex-shrink-0 text-white/70 group-hover:text-white transition-colors ml-1"
+                        [strokeWidth]="2">
+                      </lucide-icon>
+                      <span class="text-sm">{{ child.label | translate }}</span>
+                    </a>
+                  }
+                }
+              </div>
+            }
+          } @else {
+            <!-- Collapsed state - show icon only -->
+            <div class="relative group/parent">
+              <button
+                class="w-full flex items-center justify-center p-3 rounded-lg hover:bg-white/10 text-white/90 hover:text-white transition-all duration-200"
+                [title]="item.label | translate">
+                <lucide-icon 
+                  [img]="item.icon" 
+                  class="w-5 h-5 text-white/80 group-hover/parent:text-white transition-colors"
+                  [strokeWidth]="2">
+                </lucide-icon>
+              </button>
+              
+              <!-- Tooltip on hover -->
+              <div class="absolute left-full ml-2 top-0 hidden group-hover/parent:block z-50 min-w-max">
+                <div class="bg-gray-900 text-white text-xs rounded-lg py-2 px-3 shadow-xl">
+                  <div class="font-semibold mb-1">{{ item.label | translate }}</div>
+                  @for (child of item.children; track child.label) {
+                    @if (canAccess(child)) {
+                      <a
+                        [routerLink]="child.route"
+                        class="block py-1 hover:text-gov-blue transition-colors">
+                        {{ child.label | translate }}
+                      </a>
+                    }
+                  }
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      } @else {
+        <!-- Single menu item -->
+        @if (canAccess(item)) {
+          <a
+            [routerLink]="item.route"
+            routerLinkActive="bg-white/20 text-white shadow-sm"
+            [routerLinkActiveOptions]="{ exact: item.route === '/dashboard' }"
+            class="flex items-center gap-3 px-3 py-2.5 mb-1 rounded-lg hover:bg-white/10 text-white/80 hover:text-white transition-all duration-200 group"
+            [title]="collapsed ? (item.label | translate) : ''">
+            <lucide-icon 
+              [img]="item.icon" 
+              class="w-5 h-5 flex-shrink-0 text-white/80 group-hover:text-white transition-colors"
+              [class.mx-auto]="collapsed"
+              [strokeWidth]="2">
+            </lucide-icon>
+            @if (!collapsed) {
+              <span class="text-sm font-medium">{{ item.label | translate }}</span>
+            }
+          </a>
+        }
+      }
+    }
+  </nav>
+</aside>

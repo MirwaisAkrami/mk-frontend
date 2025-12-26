@@ -1,0 +1,56 @@
+<div class="min-h-screen bg-gov-bg flex items-center justify-center p-4">
+  <div class="card max-w-md w-full">
+    <div class="text-center mb-8">
+      <div class="w-20 h-20 bg-gov-navy rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto mb-4">
+        AF
+      </div>
+      <h1 class="text-2xl font-bold text-gov-navy">{{ 'common.appName' | translate }}</h1>
+      <p class="text-sm text-gov-gray mt-2">{{ 'common.ministry' | translate }}</p>
+    </div>
+
+    <form (ngSubmit)="login()" class="space-y-4">
+      @if (error()) {
+        <div class="bg-red-50 border border-red-200 rounded p-3 text-red-800 text-sm">
+          {{ error() }}
+        </div>
+      }
+
+      <div>
+        <label class="form-label">{{ 'auth.username' | translate }}</label>
+        <input
+          type="text"
+          [(ngModel)]="username"
+          name="username"
+          required
+          class="form-input"
+          placeholder="Enter username"
+        />
+      </div>
+
+      <div>
+        <label class="form-label">{{ 'auth.password' | translate }}</label>
+        <input
+          type="password"
+          [(ngModel)]="password"
+          name="password"
+          required
+          class="form-input"
+          placeholder="Enter password"
+        />
+      </div>
+
+      <button
+        type="submit"
+        [disabled]="loading() || !username || !password"
+        class="btn btn-primary w-full">
+        {{ loading() ? ('common.loading' | translate) : ('auth.login' | translate) }}
+      </button>
+    </form>
+
+    <div class="mt-6 text-center text-sm text-gov-gray">
+      <p>Demo credentials:</p>
+      <p class="mt-1">admin / password (Admin)</p>
+      <p>officer1 / password (Officer)</p>
+    </div>
+  </div>
+</div>

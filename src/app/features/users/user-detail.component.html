@@ -1,0 +1,150 @@
+<div class="space-y-6">
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-3xl font-bold text-gov-navy">{{ title() }}</h1>
+      <div class="text-sm text-gov-gray flex items-center gap-4">
+        <span>
+          Status:
+          @if (online() === true) {
+            <span class="text-green-700 font-semibold">Online</span>
+          } @else if (online() === false) {
+            <span class="text-gray-700 font-semibold">Offline</span>
+          } @else {
+            <span class="text-gray-500">Unknown</span>
+          }
+        </span>
+        @if (presence()?.show) {
+          <span>Presence: <span class="font-medium">{{ presence()?.show }}</span></span>
+        }
+        @if (offlineCount() > 0) {
+          <span class="text-orange-600">{{ offlineCount() }} offline messages</span>
+        }
+      </div>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <button class="btn btn-secondary" (click)="load()" [disabled]="loading()">
+        {{ 'common.refresh' | translate }}
+      </button>
+      <button class="btn btn-secondary" (click)="kick()">Kick</button>
+      <button class="btn btn-secondary" (click)="ban()">Ban</button>
+      <button class="btn btn-secondary" (click)="unban()">Unban</button>
+      <button class="btn btn-secondary" (click)="deactivate()">Deactivate</button>
+      <button class="btn btn-secondary" (click)="activate()">Activate</button>
+    </div>
+  </div>
+
+  @if (error()) {
+    <div class="card border border-red-200 bg-red-50 text-red-700">
+      {{ error() }}
+    </div>
+  }
+
+  <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+    <div class="card">
+      <div class="text-sm text-gov-gray">Username</div>
+      <div class="text-xl font-bold text-gov-navy">{{ user()?.username || '-' }}</div>
+    </div>
+    <div class="card">
+      <div class="text-sm text-gov-gray">Email</div>
+      <div class="text-xl font-bold text-gov-navy">{{ vcard()?.email || user()?.email || '-' }}</div>
+    </div>
+    <div class="card">
+      <div class="text-sm text-gov-gray">Nickname</div>
+      <div class="text-xl font-bold text-gov-navy">{{ vcard()?.nickname || user()?.nickname || '-' }}</div>
+    </div>
+    <div class="card">
+      <div class="text-sm text-gov-gray">Connected Resources</div>
+      <div class="text-xl font-bold text-gov-navy">{{ resources()?.length || 0 }}</div>
+    </div>
+  </div>
+
+  @if (vcard()) {
+    <div class="card">
+      <h2 class="text-lg font-semibold text-gov-navy mb-3">vCard Profile</h2>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+        @if (vcard()?.fullName) {
+          <div><span class="text-gov-gray">Full Name:</span> {{ vcard()?.fullName }}</div>
+        }
+        @if (vcard()?.birthday) {
+          <div><span class="text-gov-gray">Birthday:</span> {{ vcard()?.birthday }}</div>
+        }
+        @if (vcard()?.telephone) {
+          <div><span class="text-gov-gray">Phone:</span> {{ vcard()?.telephone }}</div>
+        }
+        @if (vcard()?.organization) {
+          <div><span class="text-gov-gray">Organization:</span> {{ vcard()?.organization }}</div>
+        }
+        @if (vcard()?.title) {
+          <div><span class="text-gov-gray">Title:</span> {{ vcard()?.title }}</div>
+        }
+        @if (vcard()?.role) {
+          <div><span class="text-gov-gray">Role:</span> {{ vcard()?.role }}</div>
+        }
+        @if (vcard()?.url) {
+          <div><span class="text-gov-gray">URL:</span> {{ vcard()?.url }}</div>
+        }
+        @if (vcard()?.description) {
+          <div class="col-span-2"><span class="text-gov-gray">Description:</span> {{ vcard()?.description }}</div>
+        }
+      </div>
+    </div>
+  }
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="card">
+      <h2 class="text-lg font-semibold text-gov-navy mb-3">Sessions ({{ sessions()?.length || 0 }})</h2>
+      <app-data-table
+        [columns]="sessionsColumns"
+        [data]="sessions()"
+        [actions]="sessionsActions"
+        [showRefresh]="false"
+        [enablePagination]="true"
+      />
+    </div>
+
+    <div class="card">
+      <h2 class="text-lg font-semibold text-gov-navy mb-3">Contacts ({{ contacts()?.length || 0 }})</h2>
+      <app-data-table
+        [columns]="contactsColumns"
+        [data]="contacts()"
+        [showRefresh]="false"
+        [enablePagination]="true"
+      />
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="card">
+      <h2 class="text-lg font-semibold text-gov-navy mb-3">Connected Resources ({{ resources()?.length || 0 }})</h2>
+      @if (resources()?.length) {
+        <ul class="list-disc list-inside text-sm space-y-1">
+          @for (res of resources(); track res) {
+            <li>{{ res }}</li>
+          }
+        </ul>
+      } @else {
+        <p class="text-sm text-gov-gray">No active resources</p>
+      }
+    </div>
+
+    <div class="card">
+      <h2 class="text-lg font-semibold text-gov-navy mb-3">Rooms ({{ rooms()?.length || 0 }})</h2>
+      @if (rooms()?.length) {
+        <ul class="list-disc list-inside text-sm space-y-1">
+          @for (room of rooms(); track room) {
+            <li>
+              <a [routerLink]="['/groups', room.split('@')[0]]" class="text-gov-blue hover:underline">{{ room }}</a>
+            </li>
+          }
+        </ul>
+      } @else {
+        <p class="text-sm text-gov-gray">Not in any rooms</p>
+      }
+    </div>
+  </div>
+
+  <div>
+    <a routerLink="/users" class="text-gov-blue hover:underline">Back to Users</a>
+  </div>
+</div>

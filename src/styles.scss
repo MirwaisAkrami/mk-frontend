@@ -1,0 +1,254 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Government-grade styles - no animations */
+@layer base {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+
+  /* Allow animation for specific utility classes */
+  .animate-spin {
+    animation: spin 1s linear infinite !important;
+  }
+
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  html {
+    font-size: 16px;
+  }
+
+  body {
+    @apply bg-gov-bg text-gov-slate antialiased;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  [dir='rtl'] body {
+    font-family: 'Noto Naskh Arabic', serif;
+  }
+
+  /* High contrast focus rings */
+  *:focus-visible {
+    @apply outline-2 outline-offset-2 outline-gov-blue ring-2 ring-gov-blue;
+  }
+
+  /* Print styles */
+  @media print {
+    .no-print {
+      display: none !important;
+    }
+
+    .print-only {
+      display: block !important;
+    }
+
+    body {
+      @apply bg-white;
+    }
+
+    @page {
+      size: A4;
+      margin: 2cm;
+    }
+  }
+}
+
+@layer components {
+  /* Button styles */
+  .btn {
+    @apply px-4 py-2 font-medium rounded focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-primary {
+    @apply bg-gov-navy text-white hover:bg-gov-blue focus:ring-gov-blue;
+  }
+
+  .btn-secondary {
+    @apply bg-gov-gray text-white hover:bg-gov-slate focus:ring-gov-gray;
+  }
+
+  .btn-outline {
+    @apply border-2 border-gov-navy text-gov-navy hover:bg-gov-navy hover:text-white focus:ring-gov-navy;
+  }
+
+  /* Form controls */
+  .form-label {
+    @apply block text-sm font-medium text-gov-slate mb-1;
+  }
+
+  .form-input {
+    @apply block w-full rounded border-gray-300 shadow-sm focus:border-gov-blue focus:ring-gov-blue sm:text-sm;
+  }
+
+  .form-error {
+    @apply mt-1 text-sm text-red-600;
+  }
+
+  /* Card */
+  .card {
+    @apply bg-white rounded-lg shadow border border-gray-200 p-6;
+  }
+
+  /* Table */
+  .table-container {
+    @apply overflow-x-auto border border-gray-200 rounded-lg;
+    max-width: 100%;
+    display: block;
+  }
+
+  .data-table {
+    @apply w-full divide-y divide-gray-200;
+    table-layout: auto;
+    min-width: 600px; /* Minimum width to maintain readability */
+  }
+
+  .data-table thead {
+    @apply bg-gray-50;
+  }
+
+  .data-table th {
+    @apply px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider;
+  }
+
+  .data-table td {
+    @apply px-6 py-4 whitespace-nowrap text-sm text-gray-900;
+  }
+
+  .data-table tbody tr:hover {
+    @apply bg-gray-50;
+  }
+
+  /* Dense mode */
+  .table-dense th {
+    @apply px-4 py-2;
+  }
+
+  .table-dense td {
+    @apply px-4 py-2;
+  }
+}
+
+@layer utilities {
+  .no-transition {
+    transition: none !important;
+  }
+
+  .rtl-mirror {
+    transform: scaleX(-1);
+  }
+
+  [dir='rtl'] .rtl-flip {
+    transform: scaleX(-1);
+  }
+}
+
+/* Print certificate styles */
+.certificate-print {
+  @apply bg-white;
+}
+
+@media print {
+  .certificate-print {
+    width: 210mm;
+    min-height: 297mm;
+    padding: 20mm;
+    margin: 0;
+  }
+
+  .certificate-header {
+    @apply border-b-4 border-gov-gold pb-4 mb-6;
+  }
+
+  .certificate-seal {
+    width: 80px;
+    height: 80px;
+    border: 2px solid #333;
+    border-radius: 50%;
+  }
+
+  .watermark {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-45deg);
+    font-size: 120px;
+    opacity: 0.05;
+    z-index: -1;
+    pointer-events: none;
+  }
+}
+
+/* ng-select custom styling */
+.ng-select-custom {
+  .ng-select-container {
+    @apply border-gray-300 rounded shadow-sm;
+    min-height: 38px;
+  }
+
+  .ng-select-container:hover {
+    @apply border-gray-400;
+  }
+
+  &.ng-select-focused .ng-select-container {
+    @apply border-gov-blue ring-1 ring-gov-blue;
+    box-shadow: 0 0 0 1px #1E3A8A;
+  }
+
+  .ng-value-container {
+    @apply px-3 py-1;
+  }
+
+  .ng-placeholder {
+    @apply text-gray-400;
+  }
+
+  .ng-value {
+    @apply bg-gov-blue text-white rounded px-2 py-1 text-sm;
+  }
+
+  .ng-value-icon {
+    @apply hover:bg-blue-700;
+  }
+
+  .ng-clear-wrapper {
+    @apply text-gray-400 hover:text-gray-600;
+  }
+
+  .ng-arrow-wrapper {
+    @apply text-gray-400;
+  }
+}
+
+.ng-dropdown-panel {
+  @apply border border-gray-300 rounded shadow-lg;
+
+  .ng-dropdown-panel-items {
+    @apply max-h-64;
+  }
+
+  .ng-option {
+    @apply px-3 py-2 text-sm;
+
+    &.ng-option-marked {
+      @apply bg-gray-100;
+    }
+
+    &.ng-option-selected {
+      @apply bg-gov-blue text-white;
+    }
+
+    &.ng-option-disabled {
+      @apply text-gray-400 cursor-not-allowed;
+    }
+  }
+}
+

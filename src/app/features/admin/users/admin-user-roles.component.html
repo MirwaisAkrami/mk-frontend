@@ -1,0 +1,46 @@
+<div class="space-y-6">
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-3xl font-bold text-gov-navy">{{ title() }}</h1>
+      <p class="text-sm text-gov-gray">Select roles and click Save.</p>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <button class="btn btn-secondary" (click)="load()" [disabled]="loading()">
+        {{ 'common.refresh' | translate }}
+      </button>
+      <button class="btn btn-primary" (click)="save()" [disabled]="loading()">
+        {{ 'common.save' | translate }}
+      </button>
+    </div>
+  </div>
+
+  @if (error()) {
+    <div class="card border border-red-200 bg-red-50 text-red-700">
+      {{ error() }}
+    </div>
+  }
+
+  <div class="card">
+    <div class="space-y-2">
+      @for (role of roles(); track role.id) {
+        <label class="flex items-center gap-3">
+          <input
+            type="checkbox"
+            class="h-4 w-4"
+            [checked]="selectedRoleIds().includes(role.id)"
+            (change)="toggle(role.id, $any($event.target).checked)"
+          />
+          <div class="flex-1">
+            <div class="font-medium text-gov-navy">{{ role.name }}</div>
+            <div class="text-xs text-gov-gray">{{ role.description }}</div>
+          </div>
+        </label>
+      }
+    </div>
+  </div>
+
+  <div>
+    <a routerLink="/admin/users" class="text-gov-blue hover:underline">Back to Admin Users</a>
+  </div>
+</div>

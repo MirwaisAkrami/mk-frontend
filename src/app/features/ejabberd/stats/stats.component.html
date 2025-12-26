@@ -1,0 +1,89 @@
+<div class="space-y-6">
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-3xl font-bold text-gov-navy">Server Statistics</h1>
+      @if (status()) {
+        <div class="text-sm text-gov-gray">{{ status() }}</div>
+      }
+    </div>
+    <div class="flex items-center gap-2">
+      <button class="btn btn-secondary" (click)="load()" [disabled]="loading()">
+        {{ 'common.refresh' | translate }}
+      </button>
+      <button class="btn btn-secondary" (click)="clearCache()">Clear Cache</button>
+      <button class="btn btn-secondary" (click)="reloadConfig()">Reload Config</button>
+    </div>
+  </div>
+
+  @if (error()) {
+    <div class="card border border-red-200 bg-red-50 text-red-700">
+      {{ error() }}
+    </div>
+  }
+
+  <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+    <div class="card">
+      <div class="text-sm text-gov-gray">Registered Users</div>
+      <div class="text-3xl font-bold text-gov-navy">{{ registeredUsers() ?? '-' }}</div>
+    </div>
+    <div class="card">
+      <div class="text-sm text-gov-gray">Online Users</div>
+      <div class="text-3xl font-bold text-green-600">{{ onlineUsers() ?? '-' }}</div>
+    </div>
+    <div class="card">
+      <div class="text-sm text-gov-gray">Online Rooms</div>
+      <div class="text-3xl font-bold text-gov-navy">{{ onlineRooms() ?? '-' }}</div>
+    </div>
+    <div class="card">
+      <div class="text-sm text-gov-gray">Uptime</div>
+      <div class="text-3xl font-bold text-gov-navy">{{ formatUptime(uptime()) }}</div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+    <div class="card">
+      <div class="text-sm text-gov-gray">Processes</div>
+      <div class="text-3xl font-bold text-gov-navy">{{ processes() ?? '-' }}</div>
+    </div>
+    <div class="card">
+      <div class="text-sm text-gov-gray">S2S Incoming</div>
+      <div class="text-3xl font-bold text-gov-navy">{{ s2sIn() ?? '-' }}</div>
+    </div>
+    <div class="card">
+      <div class="text-sm text-gov-gray">S2S Outgoing</div>
+      <div class="text-3xl font-bold text-gov-navy">{{ s2sOut() ?? '-' }}</div>
+    </div>
+    <div class="card">
+      <div class="text-sm text-gov-gray">Cluster Nodes</div>
+      <div class="text-3xl font-bold text-gov-navy">{{ clusterNodes()?.length || 0 }}</div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="card">
+      <h2 class="text-lg font-semibold text-gov-navy mb-3">Virtual Hosts ({{ vhosts()?.length || 0 }})</h2>
+      @if (vhosts()?.length) {
+        <ul class="list-disc list-inside text-sm space-y-1">
+          @for (vhost of vhosts(); track vhost) {
+            <li>{{ vhost }}</li>
+          }
+        </ul>
+      } @else {
+        <p class="text-sm text-gov-gray">No virtual hosts</p>
+      }
+    </div>
+
+    <div class="card">
+      <h2 class="text-lg font-semibold text-gov-navy mb-3">Cluster Nodes ({{ clusterNodes()?.length || 0 }})</h2>
+      @if (clusterNodes()?.length) {
+        <ul class="list-disc list-inside text-sm space-y-1">
+          @for (node of clusterNodes(); track node) {
+            <li>{{ node }}</li>
+          }
+        </ul>
+      } @else {
+        <p class="text-sm text-gov-gray">Single node (no cluster)</p>
+      }
+    </div>
+  </div>
+</div>
