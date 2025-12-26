@@ -150,4 +150,28 @@ export class EjabberdRoomsService {
     );
     return res.data;
   }
+
+  async getEmptyRooms(service?: string): Promise<string[]> {
+    const url = service 
+      ? `${this.apiUrl}/ejabberd/rooms/empty?service=${encodeURIComponent(service)}`
+      : `${this.apiUrl}/ejabberd/rooms/empty`;
+    const res = await firstValueFrom(this.http.get<Result>(url));
+    return res.data || [];
+  }
+
+  async destroyEmptyRooms(service?: string): Promise<string> {
+    const res = await firstValueFrom(
+      this.http.post<Result>(`${this.apiUrl}/ejabberd/rooms/empty/destroy`, { service: service || null })
+    );
+    return res.data as string;
+  }
+
+  async getUnusedRooms(days: number = 31, service?: string): Promise<string[]> {
+    let url = `${this.apiUrl}/ejabberd/rooms/unused?days=${days}`;
+    if (service) {
+      url += `&service=${encodeURIComponent(service)}`;
+    }
+    const res = await firstValueFrom(this.http.get<Result>(url));
+    return res.data || [];
+  }
 }

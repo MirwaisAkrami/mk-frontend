@@ -183,4 +183,76 @@ export class EjabberdUsersService {
     );
     return res.data || [];
   }
+
+  async getConnectedUsers(): Promise<string[]> {
+    const res = await firstValueFrom(
+      this.http.get<Result>(`${this.apiUrl}/ejabberd/users/connected`)
+    );
+    return res.data || [];
+  }
+
+  async getConnectedUsersNumber(): Promise<number> {
+    const res = await firstValueFrom(
+      this.http.get<Result>(`${this.apiUrl}/ejabberd/users/connected/count`)
+    );
+    return res.data as number;
+  }
+
+  async countBanned(host?: string): Promise<number> {
+    const url = host 
+      ? `${this.apiUrl}/ejabberd/users/banned/count?host=${encodeURIComponent(host)}`
+      : `${this.apiUrl}/ejabberd/users/banned/count`;
+    const res = await firstValueFrom(this.http.get<Result>(url));
+    return res.data as number;
+  }
+
+  async listBanned(host?: string): Promise<string[]> {
+    const url = host 
+      ? `${this.apiUrl}/ejabberd/users/banned?host=${encodeURIComponent(host)}`
+      : `${this.apiUrl}/ejabberd/users/banned`;
+    const res = await firstValueFrom(this.http.get<Result>(url));
+    return res.data || [];
+  }
+
+  async getBanDetails(username: string): Promise<any[]> {
+    const res = await firstValueFrom(
+      this.http.get<Result>(`${this.apiUrl}/ejabberd/users/${encodeURIComponent(username)}/ban-details`)
+    );
+    return res.data || [];
+  }
+
+  async getMamCount(username: string): Promise<number> {
+    const res = await firstValueFrom(
+      this.http.get<Result>(`${this.apiUrl}/ejabberd/users/${encodeURIComponent(username)}/mam-count`)
+    );
+    return res.data as number;
+  }
+
+  async getRosterCount(username: string): Promise<number> {
+    const res = await firstValueFrom(
+      this.http.get<Result>(`${this.apiUrl}/ejabberd/users/${encodeURIComponent(username)}/roster-count`)
+    );
+    return res.data as number;
+  }
+
+  async getUserSubscriptions(username: string): Promise<any[]> {
+    const res = await firstValueFrom(
+      this.http.get<Result>(`${this.apiUrl}/ejabberd/users/${encodeURIComponent(username)}/subscriptions`)
+    );
+    return res.data || [];
+  }
+
+  async getLastActivity(username: string): Promise<any> {
+    const res = await firstValueFrom(
+      this.http.get<Result>(`${this.apiUrl}/ejabberd/users/${encodeURIComponent(username)}/last-activity`)
+    );
+    return res.data;
+  }
+
+  async kickAllUsers(host?: string): Promise<number> {
+    const res = await firstValueFrom(
+      this.http.post<Result>(`${this.apiUrl}/ejabberd/users/kick-all`, { host: host || null })
+    );
+    return res.data as number;
+  }
 }
