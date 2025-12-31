@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "vrs-web-v2": {
+    "mk-web-v2": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -64,10 +64,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "vrs-web-v2:build:production"
+              "buildTarget": "mk-web-v2:build:production"
             },
             "development": {
-              "buildTarget": "vrs-web-v2:build:development"
+              "buildTarget": "mk-web-v2:build:development"
             }
           },
           "defaultConfiguration": "development"

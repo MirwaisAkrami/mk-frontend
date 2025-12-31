@@ -27,8 +27,26 @@ export class UserDetailComponent implements OnInit {
   offlineCount = signal<number>(0);
   rooms = signal<string[]>([]);
   resources = signal<string[]>([]);
+  banDetails = signal<any | null>(null);
 
   title = computed(() => this.username() || 'User');
+  isBanned = computed(() => {
+    const details = this.banDetails();
+    return details && Object.keys(details).length > 0;
+  });
+
+  userPhoto = computed(() => {
+    const photo = this.vcard()?.photo;
+    if (!photo) return null;
+    const cleaned = typeof photo === 'string' ? photo.replace(/^"+|"+$/g, '') : null;
+    if (!cleaned) return null;
+    try {
+      atob(cleaned.substring(0, 100));
+      return cleaned;
+    } catch {
+      return null;
+    }
+  });
 
   sessionsColumns: TableColumn[] = [
     { key: 'resource', label: 'Resource', sortable: true },
@@ -114,6 +132,13 @@ export class UserDetailComponent implements OnInit {
       } catch {
         this.online.set(null);
       }
+
+      try {
+        const banDetails = await this.usersService.getBanDetails(username);
+        this.banDetails.set(banDetails);
+      } catch {
+        this.banDetails.set(null);
+      }
     } catch (e: any) {
       this.error.set(e?.message || 'Failed to load user');
     } finally {
@@ -122,8 +147,11 @@ export class UserDetailComponent implements OnInit {
   }
 
   async kick(): Promise<void> {
+    const confirmed = confirm(`Are you sure you want to kick all sessions for user "${this.username()}"?`);
+    if (!confirmed) return;
     const reason = prompt('Reason (optional):');
     await this.usersService.kickUser(this.username(), reason);
+    alert(`User "${this.username()}" has been kicked successfully.`);
     await this.load();
   }
 

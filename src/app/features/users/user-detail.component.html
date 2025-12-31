@@ -1,7 +1,19 @@
 <div class="space-y-6">
   <div class="flex items-center justify-between">
-    <div>
-      <h1 class="text-3xl font-bold text-gov-navy">{{ title() }}</h1>
+    <div class="flex items-center gap-4">
+      @if (userPhoto()) {
+        <img
+          [src]="'data:image/png;base64,' + userPhoto()"
+          alt="User photo"
+          class="w-16 h-16 rounded-full object-cover border-2 border-gov-navy"
+        />
+      } @else {
+        <div class="w-16 h-16 rounded-full bg-gov-gray-light flex items-center justify-center text-gov-gray text-2xl font-bold">
+          {{ username().charAt(0).toUpperCase() }}
+        </div>
+      }
+      <div>
+        <h1 class="text-3xl font-bold text-gov-navy">{{ title() }}</h1>
       <div class="text-sm text-gov-gray flex items-center gap-4">
         <span>
           Status:
@@ -20,6 +32,7 @@
           <span class="text-orange-600">{{ offlineCount() }} offline messages</span>
         }
       </div>
+      </div>
     </div>
 
     <div class="flex items-center gap-2">
@@ -27,8 +40,12 @@
         {{ 'common.refresh' | translate }}
       </button>
       <button class="btn btn-secondary" (click)="kick()">Kick</button>
-      <button class="btn btn-secondary" (click)="ban()">Ban</button>
-      <button class="btn btn-secondary" (click)="unban()">Unban</button>
+      @if (!isBanned()) {
+        <button class="btn btn-secondary" (click)="ban()">Ban</button>
+      }
+      @if (isBanned()) {
+        <button class="btn btn-secondary" (click)="unban()">Unban</button>
+      }
       <button class="btn btn-secondary" (click)="deactivate()">Deactivate</button>
       <button class="btn btn-secondary" (click)="activate()">Activate</button>
     </div>

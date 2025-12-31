@@ -1,4 +1,4 @@
-# Civil Registry System (VRS)
+# Civil Registry System (mk)
 
 A government-grade, fast, accessible civil registration system for issuing Birth and Death certificates. Built with Angular 18+ using standalone components, signals, and modern best practices.
 
@@ -274,10 +274,10 @@ Ensure your web server:
 
 ## License
 
-Government of Afghanistan - Ministry of Interior Affairs
+Government of Afghanistan - Mokalama
 
 ## Support
 
 For technical support, contact:
-- Email: support@civilregistry.gov.af
+- Email: support@mokalama.com
 - Phone: +93 (0) 20 123 4567
