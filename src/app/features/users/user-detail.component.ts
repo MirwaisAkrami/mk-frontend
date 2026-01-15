@@ -5,11 +5,12 @@ import { TranslateModule } from '@ngx-translate/core';
 
 import { DataTableComponent, TableColumn, TableAction } from '../../shared/components/data-table/data-table.component';
 import { EjabberdUsersService } from '../../core/services/ejabberd-users.service';
+import { UserStatsComponent } from './components/user-stats.component';
 
 @Component({
   selector: 'app-user-detail',
   standalone: true,
-  imports: [CommonModule, TranslateModule, RouterLink, DataTableComponent],
+  imports: [CommonModule, TranslateModule, RouterLink, DataTableComponent, UserStatsComponent],
   templateUrl: './user-detail.component.html',
 })
 export class UserDetailComponent implements OnInit {

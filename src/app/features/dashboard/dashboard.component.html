@@ -1,41 +1,86 @@
 <div class="space-y-6">
+  <!-- Header -->
   <div class="flex items-center justify-between">
-    <h1 class="text-3xl font-bold text-gov-navy">{{ 'nav.dashboard' | translate }}</h1>
-    <button class="btn btn-secondary" (click)="load()" [disabled]="loading()">
-      {{ 'common.refresh' | translate }}
+    <h1 class="text-2xl font-bold text-gray-900">{{ 'nav.dashboard' | translate }}</h1>
+    <button
+      class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+      (click)="loadAll()"
+      [disabled]="loading()"
+    >
+      {{ loading() ? 'Loading...' : 'Refresh' }}
     </button>
   </div>
 
+  <!-- Error Alert -->
   @if (error()) {
-    <div class="card border border-red-200 bg-red-50 text-red-700">
-      {{ error() }}
+    <div class="rounded-md bg-red-50 p-4 border border-red-200">
+      <div class="text-sm text-red-700">{{ error() }}</div>
     </div>
   }
 
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-    <div class="card">
-      <div class="text-sm text-gov-gray">Registered Users</div>
-      <div class="text-3xl font-bold text-gov-navy">{{ registeredUsers() ?? '-' }}</div>
-    </div>
-    <div class="card">
-      <div class="text-sm text-gov-gray">Online Users</div>
-      <div class="text-3xl font-bold text-gov-navy">{{ onlineUsers() ?? '-' }}</div>
-    </div>
-    <div class="card">
-      <div class="text-sm text-gov-gray">Online Rooms</div>
-      <div class="text-3xl font-bold text-gov-navy">{{ onlineRooms() ?? '-' }}</div>
-    </div>
-  </div>
+  <!-- Filters -->
+  <app-dashboard-filters (filtersChange)="onFiltersChange($event)"></app-dashboard-filters>
 
+  <!-- KPI Cards -->
+  <app-kpi-cards [summary]="summary()" [loading]="loadingSummary()"></app-kpi-cards>
+
+  <!-- Charts Row 1 -->
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-    <div class="card">
-      <h2 class="text-lg font-semibold text-gov-navy mb-3">Dashboard Stats</h2>
-      <pre class="text-xs bg-gray-50 p-3 rounded overflow-auto">{{ dashboardStats() | json }}</pre>
-    </div>
+    <app-simple-chart
+      title="Messages Over Time"
+      type="line"
+      [labels]="getMessagesChartLabels()"
+      [datasets]="getMessagesChartData()"
+      [loading]="loadingMessagesChart()"
+    ></app-simple-chart>
 
-    <div class="card">
-      <h2 class="text-lg font-semibold text-gov-navy mb-3">System Health</h2>
-      <pre class="text-xs bg-gray-50 p-3 rounded overflow-auto">{{ systemHealth() | json }}</pre>
-    </div>
+    <app-simple-chart
+      title="New Users Over Time"
+      type="bar"
+      [labels]="getNewUsersChartLabels()"
+      [datasets]="getNewUsersChartData()"
+      [loading]="loadingNewUsersChart()"
+    ></app-simple-chart>
   </div>
+
+  <!-- Charts Row 2 -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <app-simple-chart
+      title="Active Users Over Time"
+      type="line"
+      [labels]="getActiveUsersChartLabels()"
+      [datasets]="getActiveUsersChartData()"
+      [loading]="loadingActiveUsersChart()"
+    ></app-simple-chart>
+
+    <app-simple-chart
+      title="Direct vs Group Messages"
+      type="pie"
+      [labels]="getMessageShareLabels()"
+      [datasets]="getMessageShareData()"
+      [loading]="loadingMessageShare()"
+    ></app-simple-chart>
+
+    <app-simple-chart
+      title="Top 10 Active Users"
+      type="bar"
+      [labels]="getTopUsersChartLabels()"
+      [datasets]="getTopUsersChartData()"
+      [loading]="loadingTopUsers()"
+    ></app-simple-chart>
+  </div>
+
+  <!-- Tables -->
+  <app-dashboard-tables
+    [topUsers]="topUsers()"
+    [topConversations]="topConversations()"
+    [onlineRooms]="onlineRooms()"
+    [spoolSummary]="spoolSummary()"
+    [loadingTopUsers]="loadingTopUsers()"
+    [loadingTopConversations]="loadingTopConversations()"
+    [loadingOnlineRooms]="loadingOnlineRooms()"
+    [loadingSpoolSummary]="loadingSpoolSummary()"
+    (exportTopUsers)="exportTopUsers()"
+    (exportTopConversations)="exportTopConversations()"
+  ></app-dashboard-tables>
 </div>

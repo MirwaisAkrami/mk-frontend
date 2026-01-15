@@ -1,0 +1,80 @@
+<div class="bg-white rounded-lg shadow p-4 mb-6">
+  <div class="flex flex-wrap items-center gap-4">
+    <!-- Date Range Preset -->
+    <div class="flex-1 min-w-[150px]">
+      <label class="block text-xs font-medium text-gray-500 mb-1">Date Range</label>
+      <select
+        class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
+        [ngModel]="datePreset()"
+        (ngModelChange)="onDatePresetChange($event)"
+      >
+        <option value="today">Today</option>
+        <option value="last7days">Last 7 Days</option>
+        <option value="last30days">Last 30 Days</option>
+        <option value="custom">Custom Range</option>
+      </select>
+    </div>
+
+    <!-- Custom Date From -->
+    @if (datePreset() === 'custom') {
+      <div class="flex-1 min-w-[150px]">
+        <label class="block text-xs font-medium text-gray-500 mb-1">From</label>
+        <input
+          type="date"
+          class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
+          [ngModel]="fromDateString()"
+          (ngModelChange)="onFromDateChange($event)"
+        />
+      </div>
+
+      <!-- Custom Date To -->
+      <div class="flex-1 min-w-[150px]">
+        <label class="block text-xs font-medium text-gray-500 mb-1">To</label>
+        <input
+          type="date"
+          class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
+          [ngModel]="toDateString()"
+          (ngModelChange)="onToDateChange($event)"
+        />
+      </div>
+    }
+
+    <!-- Granularity -->
+    <div class="flex-1 min-w-[120px]">
+      <label class="block text-xs font-medium text-gray-500 mb-1">Granularity</label>
+      <select
+        class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
+        [ngModel]="granularity()"
+        (ngModelChange)="onGranularityChange($event)"
+      >
+        <option value="HOUR">Hour</option>
+        <option value="DAY">Day</option>
+        <option value="WEEK">Week</option>
+      </select>
+    </div>
+
+    <!-- Message Scope -->
+    <div class="flex-1 min-w-[140px]">
+      <label class="block text-xs font-medium text-gray-500 mb-1">Message Type</label>
+      <select
+        class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
+        [ngModel]="scope()"
+        (ngModelChange)="onScopeChange($event)"
+      >
+        <option value="ALL">All Messages</option>
+        <option value="DIRECT">Direct Only</option>
+        <option value="GROUP">Group Only</option>
+      </select>
+    </div>
+
+    <!-- Apply Button -->
+    <div class="flex-shrink-0 self-end">
+      <button
+        class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 text-sm font-medium"
+        (click)="applyFilters()"
+      >
+        Apply
+      </button>
+    </div>
+  </div>
+</div>
