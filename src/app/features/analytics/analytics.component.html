@@ -1,26 +1,334 @@
 <div class="space-y-6">
-  <div class="flex items-center justify-between">
-    <h1 class="text-3xl font-bold text-gov-navy">Analytics</h1>
-    <button class="btn btn-secondary" (click)="load()" [disabled]="loading()">
-      {{ 'common.refresh' | translate }}
-    </button>
+  <!-- Header -->
+  <div class="flex items-center justify-between flex-wrap gap-4">
+    <h1 class="text-3xl font-bold text-gov-navy">Service Analytics</h1>
+    <div class="flex items-center gap-4">
+      <div class="flex items-center gap-2">
+        <label class="text-sm text-gray-600">Range:</label>
+        <input type="datetime-local" [(ngModel)]="globalFromStr" class="border rounded px-2 py-1 text-sm" />
+        <span class="text-gray-400">to</span>
+        <input type="datetime-local" [(ngModel)]="globalToStr" class="border rounded px-2 py-1 text-sm" />
+      </div>
+      <button class="btn btn-primary" (click)="refreshAll()" [disabled]="loading()">
+        Refresh All
+      </button>
+    </div>
   </div>
 
   @if (error()) {
-    <div class="card border border-red-200 bg-red-50 text-red-700">
-      {{ error() }}
-    </div>
+    <div class="card border border-red-200 bg-red-50 text-red-700">{{ error() }}</div>
   }
 
+  <!-- Live Concurrency KPIs -->
+  <section>
+    <div class="flex items-center justify-between mb-3">
+      <h2 class="text-xl font-semibold text-gov-navy">Live Status</h2>
+      <button class="btn btn-sm btn-secondary" (click)="refreshOnlineSummary()" [disabled]="onlineSummary().loading">↻</button>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="card">
+        <div class="text-sm text-gray-500">Users Online</div>
+        @if (onlineSummary().loading) {
+          <div class="animate-pulse h-8 bg-gray-200 rounded mt-1"></div>
+        } @else {
+          <div class="text-2xl font-bold text-gov-navy">{{ formatNumber(onlineSummary().data?.usersOnline) }}</div>
+        }
+      </div>
+      <div class="card">
+        <div class="text-sm text-gray-500">Rooms Online</div>
+        @if (onlineSummary().loading) {
+          <div class="animate-pulse h-8 bg-gray-200 rounded mt-1"></div>
+        } @else {
+          <div class="text-2xl font-bold text-gov-navy">{{ formatNumber(onlineSummary().data?.roomsOnline) }}</div>
+        }
+      </div>
+      <div class="card">
+        <div class="text-sm text-gray-500">Users in Rooms</div>
+        @if (onlineSummary().loading) {
+          <div class="animate-pulse h-8 bg-gray-200 rounded mt-1"></div>
+        } @else {
+          <div class="text-2xl font-bold text-gov-navy">{{ formatNumber(onlineSummary().data?.totalUsersInRooms) }}</div>
+        }
+      </div>
+      <div class="card">
+        <div class="text-sm text-gray-500">Offline Queue</div>
+        @if (spoolPressure().loading) {
+          <div class="animate-pulse h-8 bg-gray-200 rounded mt-1"></div>
+        } @else {
+          <div class="text-2xl font-bold text-gov-navy">{{ formatNumber(spoolPressure().data?.totalQueuedMessages) }}</div>
+          <div class="text-xs text-gray-400">Oldest: {{ formatAge(spoolPressure().data?.oldestAgeSeconds) }}</div>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- Message Throughput Chart -->
+  <section>
+    <div class="flex items-center justify-between mb-3">
+      <h2 class="text-xl font-semibold text-gov-navy">Message Throughput (Direct vs Group)</h2>
+      <button class="btn btn-sm btn-secondary" (click)="refreshThroughput()" [disabled]="throughput().loading">↻ Refresh</button>
+    </div>
+    <div class="card">
+      @if (throughput().loading) {
+        <div class="animate-pulse h-64 bg-gray-200 rounded"></div>
+      } @else if (throughput().error) {
+        <div class="text-red-500">{{ throughput().error }}</div>
+      } @else if (throughputChartData()) {
+        <div class="flex gap-4 mb-3 text-sm">
+          <span><strong>Total:</strong> {{ formatNumber(throughput().data?.totalMessages) }}</span>
+          <span class="text-blue-600"><strong>Direct:</strong> {{ formatNumber(throughput().data?.totalDirect) }}</span>
+          <span class="text-green-600"><strong>Group:</strong> {{ formatNumber(throughput().data?.totalGroup) }}</span>
+        </div>
+        <div class="relative h-64 w-full">
+          <canvas baseChart [data]="throughputChartData()!" [options]="lineChartOptions" [type]="'line'"></canvas>
+        </div>
+      } @else {
+        <div class="h-64 flex items-center justify-center text-gray-400">No data available</div>
+      }
+    </div>
+  </section>
+
+  <!-- Top Active Users & Connectivity -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Top Active Users -->
+    <section>
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-lg font-semibold text-gov-navy">Top Active Users</h2>
+        <button class="btn btn-sm btn-secondary" (click)="refreshTopActiveUsers()" [disabled]="topActiveUsers().loading">↻</button>
+      </div>
+      <div class="card">
+        @if (topActiveUsers().loading) {
+          <div class="animate-pulse space-y-2">
+            <div class="h-6 bg-gray-200 rounded"></div>
+            <div class="h-6 bg-gray-200 rounded"></div>
+            <div class="h-6 bg-gray-200 rounded"></div>
+          </div>
+        } @else if (topActiveUsers().data?.length) {
+          <table class="w-full text-sm">
+            <thead><tr class="border-b"><th class="text-left py-2">User</th><th class="text-right py-2">Messages</th><th class="text-right py-2">Direct</th><th class="text-right py-2">Group</th></tr></thead>
+            <tbody>
+              @for (user of topActiveUsers().data; track user.username) {
+                <tr class="border-b hover:bg-gray-50">
+                  <td class="py-2 truncate max-w-[150px]">{{ user.username }}</td>
+                  <td class="py-2 text-right font-medium">{{ formatNumber(user.messageCount) }}</td>
+                  <td class="py-2 text-right text-blue-600">{{ formatNumber(user.directCount) }}</td>
+                  <td class="py-2 text-right text-green-600">{{ formatNumber(user.groupCount) }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        } @else {
+          <div class="text-gray-400 text-center py-4">No data</div>
+        }
+      </div>
+    </section>
+
+    <!-- Connectivity Distribution -->
+    <section>
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-lg font-semibold text-gov-navy">Peer Connectivity Distribution</h2>
+        <button class="btn btn-sm btn-secondary" (click)="refreshConnectivity()" [disabled]="connectivity().loading">↻</button>
+      </div>
+      <div class="card">
+        @if (connectivity().loading) {
+          <div class="animate-pulse h-48 bg-gray-200 rounded"></div>
+        } @else if (connectivity().error) {
+          <div class="text-red-500">{{ connectivity().error }}</div>
+        } @else if (connectivityChartData()) {
+          <div class="text-sm mb-2">
+            <span class="text-gray-600">Avg peers/user:</span>
+            <strong class="ml-1">{{ connectivity().data?.avgPeersPerUser }}</strong>
+          </div>
+          <div class="relative h-48 w-full">
+            <canvas baseChart [data]="connectivityChartData()!" [options]="barChartOptions" [type]="'bar'"></canvas>
+          </div>
+        } @else {
+          <div class="h-48 flex items-center justify-center text-gray-400">No data</div>
+        }
+      </div>
+    </section>
+  </div>
+
+  <!-- Group Ecosystem -->
+  <section>
+    <div class="flex items-center justify-between mb-3">
+      <h2 class="text-xl font-semibold text-gov-navy">Group Ecosystem</h2>
+      <button class="btn btn-sm btn-secondary" (click)="refreshGroupEcosystem(); refreshTopActiveRooms(); refreshOccupancyDist()">↻ Refresh</button>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+      <div class="card">
+        <div class="text-sm text-gray-500">Active Rooms (Range)</div>
+        <div class="text-2xl font-bold text-gov-navy">{{ formatNumber(groupEcosystem().data?.activeRoomsInRange) }}</div>
+      </div>
+      <div class="card">
+        <div class="text-sm text-gray-500">Total Rooms</div>
+        <div class="text-2xl font-bold text-gov-navy">{{ formatNumber(groupEcosystem().data?.totalRooms) }}</div>
+      </div>
+      <div class="card">
+        <div class="text-sm text-gray-500">Online Now</div>
+        <div class="text-2xl font-bold text-gov-navy">{{ formatNumber(groupEcosystem().data?.onlineRoomsNow) }}</div>
+      </div>
+      <div class="card">
+        <div class="text-sm text-gray-500">Occupants Now</div>
+        <div class="text-2xl font-bold text-gov-navy">{{ formatNumber(groupEcosystem().data?.totalOccupantsNow) }}</div>
+      </div>
+    </div>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- Top Active Rooms -->
+      <div class="card">
+        <h3 class="text-md font-semibold text-gov-navy mb-3">Top Active Rooms</h3>
+        @if (topActiveRooms().loading) {
+          <div class="animate-pulse space-y-2"><div class="h-6 bg-gray-200 rounded"></div><div class="h-6 bg-gray-200 rounded"></div></div>
+        } @else if (topActiveRooms().data?.length) {
+          <table class="w-full text-sm">
+            <thead><tr class="border-b"><th class="text-left py-2">Room</th><th class="text-right py-2">Messages</th></tr></thead>
+            <tbody>
+              @for (room of topActiveRooms().data; track room.roomJid) {
+                <tr class="border-b hover:bg-gray-50">
+                  <td class="py-2 truncate max-w-[200px]" [title]="room.roomJid">{{ room.name }}</td>
+                  <td class="py-2 text-right font-medium">{{ formatNumber(room.messageCount) }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        } @else {
+          <div class="text-gray-400 text-center py-4">No data</div>
+        }
+      </div>
+      <!-- Occupancy Distribution -->
+      <div class="card">
+        <h3 class="text-md font-semibold text-gov-navy mb-3">Room Occupancy Distribution</h3>
+        @if (occupancyDist().loading) {
+          <div class="animate-pulse h-48 bg-gray-200 rounded"></div>
+        } @else if (occupancyChartData()) {
+          <div class="relative h-48 w-full">
+            <canvas baseChart [data]="occupancyChartData()!" [options]="barChartOptions" [type]="'bar'"></canvas>
+          </div>
+        } @else {
+          <div class="h-48 flex items-center justify-center text-gray-400">No data</div>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- Push & Roster Health -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Push Health -->
+    <section>
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-lg font-semibold text-gov-navy">Push Notification Health</h2>
+        <button class="btn btn-sm btn-secondary" (click)="refreshPushHealth(); refreshPushByService()">↻</button>
+      </div>
+      <div class="card">
+        <div class="flex gap-6 mb-4">
+          <div>
+            <div class="text-sm text-gray-500">Users with Push</div>
+            <div class="text-xl font-bold text-gov-navy">{{ formatNumber(pushHealth().data?.usersWithPushSession) }}</div>
+          </div>
+          <div>
+            <div class="text-sm text-gray-500">Total Sessions</div>
+            <div class="text-xl font-bold text-gov-navy">{{ formatNumber(pushHealth().data?.totalPushSessions) }}</div>
+          </div>
+        </div>
+        @if (pushByService().loading) {
+          <div class="animate-pulse h-32 bg-gray-200 rounded"></div>
+        } @else if (pushServiceChartData()) {
+          <div class="flex items-center gap-4">
+            <div class="w-32 h-32">
+              <canvas baseChart [data]="pushServiceChartData()!" [options]="doughnutChartOptions" [type]="'doughnut'"></canvas>
+            </div>
+            <div class="text-sm space-y-1">
+              @for (s of pushByService().data; track s.service) {
+                <div><strong>{{ s.service }}:</strong> {{ s.sessionCount }} ({{ s.percentage }}%)</div>
+              }
+            </div>
+          </div>
+        } @else {
+          <div class="text-gray-400 text-center py-4">No push data</div>
+        }
+      </div>
+    </section>
+
+    <!-- Roster Health -->
+    <section>
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-lg font-semibold text-gov-navy">Roster Health</h2>
+        <button class="btn btn-sm btn-secondary" (click)="refreshRosterHealth(); refreshRosterDist()">↻</button>
+      </div>
+      <div class="card">
+        <div class="grid grid-cols-2 gap-4 mb-4">
+          <div>
+            <div class="text-sm text-gray-500">Avg Contacts/User</div>
+            <div class="text-xl font-bold text-gov-navy">{{ rosterHealth().data?.avgContactsPerUser || 0 }}</div>
+          </div>
+          <div>
+            <div class="text-sm text-gray-500">Mutual Rate</div>
+            <div class="text-xl font-bold text-gov-navy">{{ rosterHealth().data?.mutualSubscriptionRate || 0 }}%</div>
+          </div>
+          <div>
+            <div class="text-sm text-gray-500">Total Links</div>
+            <div class="text-xl font-bold text-gov-navy">{{ formatNumber(rosterHealth().data?.totalRosterLinks) }}</div>
+          </div>
+          <div>
+            <div class="text-sm text-gray-500">Mutual (Both)</div>
+            <div class="text-xl font-bold text-green-600">{{ formatNumber(rosterHealth().data?.bothSubscriptionCount) }}</div>
+          </div>
+        </div>
+        @if (rosterDist().loading) {
+          <div class="animate-pulse h-32 bg-gray-200 rounded"></div>
+        } @else if (rosterDistChartData()) {
+          <div class="relative h-32 w-full">
+            <canvas baseChart [data]="rosterDistChartData()!" [options]="barChartOptions" [type]="'bar'"></canvas>
+          </div>
+        } @else {
+          <div class="h-32 flex items-center justify-center text-gray-400">No data</div>
+        }
+      </div>
+    </section>
+  </div>
+
+  <!-- Spool Backlog -->
+  <section>
+    <div class="flex items-center justify-between mb-3">
+      <h2 class="text-lg font-semibold text-gov-navy">Offline Queue (Spool) Top Users</h2>
+      <button class="btn btn-sm btn-secondary" (click)="refreshTopSpoolUsers()" [disabled]="topSpoolUsers().loading">↻</button>
+    </div>
+    <div class="card">
+      @if (topSpoolUsers().loading) {
+        <div class="animate-pulse space-y-2"><div class="h-6 bg-gray-200 rounded"></div><div class="h-6 bg-gray-200 rounded"></div></div>
+      } @else if (topSpoolUsers().data?.length) {
+        <table class="w-full text-sm">
+          <thead><tr class="border-b"><th class="text-left py-2">User</th><th class="text-right py-2">Queued</th><th class="text-right py-2">Oldest</th></tr></thead>
+          <tbody>
+            @for (user of topSpoolUsers().data; track user.username) {
+              <tr class="border-b hover:bg-gray-50">
+                <td class="py-2 truncate max-w-[200px]">{{ user.username }}</td>
+                <td class="py-2 text-right font-medium">{{ formatNumber(user.queuedCount) }}</td>
+                <td class="py-2 text-right text-gray-500 text-xs">{{ user.oldestMessageAt ? formatTimestamp(user.oldestMessageAt) : '-' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      } @else {
+        <div class="text-gray-400 text-center py-4">No backlog</div>
+      }
+    </div>
+  </section>
+
+  <!-- System Health & Suspicious (original) -->
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
     <div class="card">
       <h2 class="text-lg font-semibold text-gov-navy mb-3">System Health</h2>
-      <pre class="text-xs bg-gray-50 p-3 rounded overflow-auto">{{ systemHealth() | json }}</pre>
+      <pre class="text-xs bg-gray-50 p-3 rounded overflow-auto max-h-48">{{ systemHealth() | json }}</pre>
     </div>
-
     <div class="card">
       <h2 class="text-lg font-semibold text-gov-navy mb-3">Suspicious Activities</h2>
-      <pre class="text-xs bg-gray-50 p-3 rounded overflow-auto">{{ suspiciousActivities() | json }}</pre>
+      @if (suspiciousActivities()?.length) {
+        <div class="text-sm text-red-600 font-medium mb-2">{{ suspiciousActivities().length }} alerts</div>
+        <pre class="text-xs bg-gray-50 p-3 rounded overflow-auto max-h-48">{{ suspiciousActivities() | json }}</pre>
+      } @else {
+        <div class="text-green-600 text-sm">No suspicious activity detected</div>
+      }
     </div>
   </div>
 </div>
