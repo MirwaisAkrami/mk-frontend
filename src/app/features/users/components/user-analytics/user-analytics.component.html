@@ -1,0 +1,543 @@
+<div class="space-y-6 mt-6">
+      <div class="flex items-center justify-between">
+        <h2 class="text-xl font-bold text-gov-navy">User Analytics</h2>
+        <div class="flex items-center gap-4">
+          <div class="flex items-center gap-2">
+            <label class="text-sm text-gov-gray">Global Range:</label>
+            <input
+              type="datetime-local"
+              [(ngModel)]="globalFromStr"
+              class="input input-sm"
+              (change)="onGlobalDateChange()"
+            />
+            <span class="text-gov-gray">to</span>
+            <input
+              type="datetime-local"
+              [(ngModel)]="globalToStr"
+              class="input input-sm"
+              (change)="onGlobalDateChange()"
+            />
+          </div>
+          <button class="btn btn-primary btn-sm" (click)="refreshAll()">
+            Refresh All
+          </button>
+        </div>
+      </div>
+
+      <!-- KPI Cards Row -->
+      <div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-6 gap-4">
+        <!-- Unique Peers -->
+        <div class="card">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-sm font-medium text-gov-gray">Unique Peers</span>
+            <button
+              class="btn-icon"
+              (click)="refreshUniquePeers()"
+              [disabled]="uniquePeersState().loading"
+            >
+              <span class="text-xs">↻</span>
+            </button>
+          </div>
+          @if (uniquePeersState().loading) {
+            <div class="animate-pulse h-8 bg-gray-200 rounded"></div>
+          } @else if (uniquePeersState().error) {
+            <div class="text-red-500 text-xs">{{ uniquePeersState().error }}</div>
+          } @else if (uniquePeersState().data) {
+            <div class="text-2xl font-bold text-gov-navy">
+              {{ uniquePeersState().data!.uniquePeers }}
+            </div>
+          } @else {
+            <div class="text-gray-400 text-sm">No data</div>
+          }
+        </div>
+
+        <!-- Active Days -->
+        <div class="card">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-sm font-medium text-gov-gray">Active Days</span>
+            <button
+              class="btn-icon"
+              (click)="refreshActiveDays()"
+              [disabled]="activeDaysState().loading"
+            >
+              <span class="text-xs">↻</span>
+            </button>
+          </div>
+          @if (activeDaysState().loading) {
+            <div class="animate-pulse h-8 bg-gray-200 rounded"></div>
+          } @else if (activeDaysState().error) {
+            <div class="text-red-500 text-xs">{{ activeDaysState().error }}</div>
+          } @else if (activeDaysState().data) {
+            <div class="text-2xl font-bold text-gov-navy">
+              {{ activeDaysState().data!.activeDays }}
+            </div>
+            <div class="text-xs text-gov-gray">
+              {{ activeDaysState().data!.activityRate }}% activity rate
+            </div>
+          } @else {
+            <div class="text-gray-400 text-sm">No data</div>
+          }
+        </div>
+
+        <!-- Burstiness -->
+        <div class="card">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-sm font-medium text-gov-gray">Burst Score</span>
+            <button
+              class="btn-icon"
+              (click)="refreshBurstiness()"
+              [disabled]="burstinessState().loading"
+            >
+              <span class="text-xs">↻</span>
+            </button>
+          </div>
+          @if (burstinessState().loading) {
+            <div class="animate-pulse h-8 bg-gray-200 rounded"></div>
+          } @else if (burstinessState().error) {
+            <div class="text-red-500 text-xs">{{ burstinessState().error }}</div>
+          } @else if (burstinessState().data) {
+            <div class="text-2xl font-bold text-gov-navy">
+              {{ burstinessState().data!.burstScore }}x
+            </div>
+            <div class="text-xs text-gov-gray">
+              Peak: {{ burstinessState().data!.peakMessagesPerHour }}/hr
+            </div>
+          } @else {
+            <div class="text-gray-400 text-sm">No data</div>
+          }
+        </div>
+
+        <!-- Concentration -->
+        <div class="card">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-sm font-medium text-gov-gray">Top-1 Share</span>
+            <button
+              class="btn-icon"
+              (click)="refreshConcentration()"
+              [disabled]="concentrationState().loading"
+            >
+              <span class="text-xs">↻</span>
+            </button>
+          </div>
+          @if (concentrationState().loading) {
+            <div class="animate-pulse h-8 bg-gray-200 rounded"></div>
+          } @else if (concentrationState().error) {
+            <div class="text-red-500 text-xs">{{ concentrationState().error }}</div>
+          } @else if (concentrationState().data) {
+            <div class="text-2xl font-bold text-gov-navy">
+              {{ concentrationState().data!.top1SharePercent }}%
+            </div>
+            <div
+              class="text-xs text-gov-gray truncate"
+              [title]="concentrationState().data!.topPeerJid || ''"
+            >
+              {{ concentrationState().data!.topPeerJid || 'N/A' }}
+            </div>
+          } @else {
+            <div class="text-gray-400 text-sm">No data</div>
+          }
+        </div>
+
+        <!-- Spool Summary -->
+        <div class="card">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-sm font-medium text-gov-gray">Offline Queue</span>
+            <button
+              class="btn-icon"
+              (click)="refreshSpoolSummary()"
+              [disabled]="spoolState().loading"
+            >
+              <span class="text-xs">↻</span>
+            </button>
+          </div>
+          @if (spoolState().loading) {
+            <div class="animate-pulse h-8 bg-gray-200 rounded"></div>
+          } @else if (spoolState().error) {
+            <div class="text-red-500 text-xs">{{ spoolState().error }}</div>
+          } @else if (spoolState().data) {
+            @if (spoolState().data!.supported) {
+              <div class="text-2xl font-bold text-gov-navy">
+                {{ spoolState().data!.queuedMessages }}
+              </div>
+            } @else {
+              <div class="text-gray-400 text-sm">Not supported</div>
+            }
+          } @else {
+            <div class="text-gray-400 text-sm">No data</div>
+          }
+        </div>
+
+        <!-- Roster -->
+        <div class="card">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-sm font-medium text-gov-gray">Roster Size</span>
+            <button
+              class="btn-icon"
+              (click)="refreshRoster()"
+              [disabled]="rosterState().loading"
+            >
+              <span class="text-xs">↻</span>
+            </button>
+          </div>
+          @if (rosterState().loading) {
+            <div class="animate-pulse h-8 bg-gray-200 rounded"></div>
+          } @else if (rosterState().error) {
+            <div class="text-red-500 text-xs">{{ rosterState().error }}</div>
+          } @else if (rosterState().data) {
+            @if (rosterState().data!.supported) {
+              <div class="text-2xl font-bold text-gov-navy">
+                {{ rosterState().data!.totalContacts }}
+              </div>
+              <div class="text-xs text-gov-gray">
+                {{ rosterState().data!.bothSubscription }} mutual
+              </div>
+            } @else {
+              <div class="text-gray-400 text-sm">Not supported</div>
+            }
+          } @else {
+            <div class="text-gray-400 text-sm">No data</div>
+          }
+        </div>
+      </div>
+
+      <!-- Charts Row -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Hourly Activity Chart -->
+        <div class="card">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gov-navy">
+              Hourly Activity (0-23h)
+            </h3>
+            <button
+              class="btn btn-sm btn-secondary"
+              (click)="refreshHourlyActivity()"
+              [disabled]="hourlyState().loading"
+            >
+              ↻ Refresh
+            </button>
+          </div>
+
+          @if (hourlyState().loading) {
+            <div class="animate-pulse h-64 bg-gray-200 rounded"></div>
+          } @else if (hourlyState().error) {
+            <div class="text-red-500">{{ hourlyState().error }}</div>
+          } @else if (hourlyState().data && hourlyChartData()) {
+            <div class="relative h-64 w-full">
+              <canvas
+                baseChart
+                class="block w-full h-full"
+                [data]="hourlyChartData()!"
+                [options]="barChartOptions"
+                [type]="'bar'"
+              >
+              </canvas>
+            </div>
+          } @else {
+            <div class="h-64 flex items-center justify-center text-gray-400">
+              No data available
+            </div>
+          }
+        </div>
+
+        <!-- Daily Activity Chart -->
+        <div class="card">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gov-navy">Daily Trend</h3>
+            <button
+              class="btn btn-sm btn-secondary"
+              (click)="refreshDailyActivity()"
+              [disabled]="dailyState().loading"
+            >
+              ↻ Refresh
+            </button>
+          </div>
+
+          @if (dailyState().loading) {
+            <div class="animate-pulse h-64 bg-gray-200 rounded"></div>
+          } @else if (dailyState().error) {
+            <div class="text-red-500">{{ dailyState().error }}</div>
+          } @else if (dailyState().data && dailyChartData()) {
+            <div class="relative h-64 w-full">
+              <canvas
+                baseChart
+                class="block w-full h-full"
+                [data]="dailyChartData()!"
+                [options]="lineChartOptions"
+                [type]="'line'"
+              >
+              </canvas>
+            </div>
+          } @else {
+            <div class="h-64 flex items-center justify-center text-gray-400">
+              No data available
+            </div>
+          }
+        </div>
+
+        <!-- Direct vs Group Doughnut -->
+        <div class="card">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gov-navy">Direct vs Group</h3>
+            <button
+              class="btn btn-sm btn-secondary"
+              (click)="refreshDirectVsGroup()"
+              [disabled]="directVsGroupState().loading"
+            >
+              ↻ Refresh
+            </button>
+          </div>
+          @if (directVsGroupState().loading) {
+            <div class="animate-pulse h-64 bg-gray-200 rounded"></div>
+          } @else if (directVsGroupState().error) {
+            <div class="text-red-500">{{ directVsGroupState().error }}</div>
+          } @else if (directVsGroupState().data && directVsGroupChartData()) {
+            <div class="flex items-center gap-4">
+              <div class="w-48 h-48">
+                <canvas
+                  baseChart
+                  class="block w-full h-full"
+                  [data]="directVsGroupChartData()!"
+                  [options]="doughnutChartOptions"
+                  [type]="'doughnut'"
+                >
+                </canvas>
+              </div>
+              <div class="text-sm space-y-1">
+                <div>
+                  <span class="font-medium">Direct:</span>
+                  {{ directVsGroupState().data!.directCount }}
+                  ({{ directVsGroupState().data!.directPercentage }}%)
+                </div>
+                <div>
+                  <span class="font-medium">Group:</span>
+                  {{ directVsGroupState().data!.groupCount }}
+                  ({{ directVsGroupState().data!.groupPercentage }}%)
+                </div>
+                <div>
+                  <span class="font-medium">Groups:</span>
+                  {{ directVsGroupState().data!.distinctGroups }}
+                </div>
+                @if (directVsGroupState().data!.dominantGroupJid) {
+                  <div class="truncate" [title]="directVsGroupState().data!.dominantGroupJid!">
+                    <span class="font-medium">Top:</span>
+                    {{ directVsGroupState().data!.dominantGroupJid }}
+                  </div>
+                }
+              </div>
+            </div>
+          } @else {
+            <div class="h-64 flex items-center justify-center text-gray-400">
+              No data available
+            </div>
+          }
+        </div>
+
+        <!-- Conversation Depth -->
+        <div class="card">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gov-navy">Conversation Depth</h3>
+            <button
+              class="btn btn-sm btn-secondary"
+              (click)="refreshConversationDepth()"
+              [disabled]="conversationDepthState().loading"
+            >
+              ↻ Refresh
+            </button>
+          </div>
+          @if (conversationDepthState().loading) {
+            <div class="animate-pulse h-64 bg-gray-200 rounded"></div>
+          } @else if (conversationDepthState().error) {
+            <div class="text-red-500">{{ conversationDepthState().error }}</div>
+          } @else if (conversationDepthState().data && depthChartData()) {
+            <div class="relative h-64 w-full">
+              <canvas
+                baseChart
+                class="block w-full h-full"
+                [data]="depthChartData()!"
+                [options]="barChartOptions"
+                [type]="'bar'"
+              >
+              </canvas>
+            </div>
+          } @else {
+            <div class="h-64 flex items-center justify-center text-gray-400">
+              No data available
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Tables Row -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Recent Peers Table -->
+        <div class="card">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gov-navy">Recent Chat Peers</h3>
+            <button
+              class="btn btn-sm btn-secondary"
+              (click)="refreshPeers()"
+              [disabled]="peersState().loading"
+            >
+              ↻ Refresh
+            </button>
+          </div>
+          @if (peersState().loading) {
+            <div class="animate-pulse space-y-2">
+              <div class="h-8 bg-gray-200 rounded"></div>
+              <div class="h-8 bg-gray-200 rounded"></div>
+              <div class="h-8 bg-gray-200 rounded"></div>
+            </div>
+          } @else if (peersState().error) {
+            <div class="text-red-500">{{ peersState().error }}</div>
+          } @else if (peersState().data && peersState().data!.length > 0) {
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="border-b">
+                    <th class="text-left py-2">Peer</th>
+                    <th class="text-right py-2">Count</th>
+                    <th class="text-right py-2">Last Activity</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (peer of peersState().data; track peer.peerJid) {
+                    <tr class="border-b hover:bg-gray-50">
+                      <td class="py-2 truncate max-w-[200px]" [title]="peer.peerJid">
+                        {{ peer.peerJid }}
+                      </td>
+                      <td class="py-2 text-right">{{ peer.messageCount }}</td>
+                      <td class="py-2 text-right text-xs text-gov-gray">
+                        {{ formatDate(peer.lastActivityAt) }}
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          } @else {
+            <div class="text-gray-400 text-center py-4">No peers found</div>
+          }
+        </div>
+
+        <!-- Groups Table -->
+        <div class="card">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gov-navy">Groups User Chatted In</h3>
+            <button
+              class="btn btn-sm btn-secondary"
+              (click)="refreshGroups()"
+              [disabled]="groupsState().loading"
+            >
+              ↻ Refresh
+            </button>
+          </div>
+          @if (groupsState().loading) {
+            <div class="animate-pulse space-y-2">
+              <div class="h-8 bg-gray-200 rounded"></div>
+              <div class="h-8 bg-gray-200 rounded"></div>
+              <div class="h-8 bg-gray-200 rounded"></div>
+            </div>
+          } @else if (groupsState().error) {
+            <div class="text-red-500">{{ groupsState().error }}</div>
+          } @else if (groupsState().data && groupsState().data!.length > 0) {
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="border-b">
+                    <th class="text-left py-2">Room</th>
+                    <th class="text-right py-2">Count</th>
+                    <th class="text-right py-2">Last Activity</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (group of groupsState().data; track group.roomJid) {
+                    <tr class="border-b hover:bg-gray-50">
+                      <td class="py-2 truncate max-w-[200px]" [title]="group.roomJid">
+                        {{ group.roomJid }}
+                      </td>
+                      <td class="py-2 text-right">{{ group.messageCount }}</td>
+                      <td class="py-2 text-right text-xs text-gov-gray">
+                        {{ formatDate(group.lastActivityAt) }}
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          } @else {
+            <div class="text-gray-400 text-center py-4">No groups found</div>
+          }
+        </div>
+      </div>
+
+      <!-- Operational Widgets Row -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Last Seen -->
+        <div class="card">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-sm font-medium text-gov-gray">Last Seen</span>
+            <button
+              class="btn-icon"
+              (click)="refreshLastSeen()"
+              [disabled]="lastSeenState().loading"
+            >
+              <span class="text-xs">↻</span>
+            </button>
+          </div>
+          @if (lastSeenState().loading) {
+            <div class="animate-pulse h-8 bg-gray-200 rounded"></div>
+          } @else if (lastSeenState().error) {
+            <div class="text-red-500 text-xs">{{ lastSeenState().error }}</div>
+          } @else if (lastSeenState().data) {
+            @if (lastSeenState().data!.supported && lastSeenState().data!.lastSeenAt) {
+              <div class="text-lg font-bold text-gov-navy">
+                {{ formatDate(lastSeenState().data!.lastSeenAt!) }}
+              </div>
+              <div class="text-xs text-gov-gray">
+                {{ formatSecondsAgo(lastSeenState().data!.secondsAgo) }}
+              </div>
+            } @else {
+              <div class="text-gray-400 text-sm">
+                {{ lastSeenState().data!.reason || 'Not available' }}
+              </div>
+            }
+          } @else {
+            <div class="text-gray-400 text-sm">No data</div>
+          }
+        </div>
+
+        <!-- Push Sessions -->
+        <div class="card">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-sm font-medium text-gov-gray">Push Sessions</span>
+            <button
+              class="btn-icon"
+              (click)="refreshPushSession()"
+              [disabled]="pushSessionState().loading"
+            >
+              <span class="text-xs">↻</span>
+            </button>
+          </div>
+          @if (pushSessionState().loading) {
+            <div class="animate-pulse h-8 bg-gray-200 rounded"></div>
+          } @else if (pushSessionState().error) {
+            <div class="text-red-500 text-xs">{{ pushSessionState().error }}</div>
+          } @else if (pushSessionState().data) {
+            @if (pushSessionState().data!.supported) {
+              <div class="text-2xl font-bold text-gov-navy">
+                {{ pushSessionState().data!.sessionCount }}
+              </div>
+              @if (pushSessionState().data!.sessions && pushSessionState().data!.sessions!.length > 0) {
+                <div class="text-xs text-gov-gray truncate">
+                  {{ pushSessionState().data!.sessions![0].service }}
+                </div>
+              }
+            } @else {
+              <div class="text-gray-400 text-sm">Not supported</div>
+            }
+          } @else {
+            <div class="text-gray-400 text-sm">No data</div>
+          }
+        </div>
+      </div>
+    </div>

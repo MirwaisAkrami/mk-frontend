@@ -1,0 +1,31 @@
+.btn-icon {
+    @apply p-1 rounded hover:bg-gray-100 text-gov-gray hover:text-gov-navy transition-colors;
+}
+
+.card {
+    @apply bg-white rounded-lg shadow p-4;
+}
+
+.input {
+    @apply border rounded px-2 py-1 text-sm;
+}
+
+.input-sm {
+    @apply text-xs px-1 py-0.5;
+}
+
+.btn {
+    @apply px-3 py-1.5 rounded font-medium transition-colors;
+}
+
+.btn-sm {
+    @apply px-2 py-1 text-sm;
+}
+
+.btn-primary {
+    @apply bg-gov-navy text-white hover:bg-gov-navy/90;
+}
+
+.btn-secondary {
+    @apply bg-gray-100 text-gov-navy hover:bg-gray-200;
+}
